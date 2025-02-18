@@ -1,7 +1,5 @@
 import gzip
 import sys
-import pprint
-import io
 
 # Things to note, Python just uses more general types
 # Therefore, int can be used for Byte, Short, Int, and Long
@@ -225,14 +223,12 @@ def parse(fileLocation):
     nameLength = int.from_bytes(map.read(2), byteorder="big", signed=False)
     name = map.read(nameLength).decode()
     root = Compound()
-
-    # pprint.pp(root)
-    print(root)
     map.close()
+    return root
 
 
 # Using the special variable 
 # __name__
 if __name__=="__main__":
-    parse(sys.argv[1])
+    print(parse(sys.argv[1]))
 
