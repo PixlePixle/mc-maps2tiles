@@ -1,8 +1,7 @@
 import gzip
+import sys
 import pprint
-
-file = "map_0.dat"
-map = gzip.open(file, 'rb')
+import io
 
 # Things to note, Python just uses more general types
 # Therefore, int can be used for Byte, Short, Int, and Long
@@ -146,7 +145,7 @@ def Compound():
     while 1 == 1:
         file_content = map.read(1)
 
-        # Ends the loop at end of file
+        # Ends the loop at end of fileLocation
         if file_content == b'':
             break
 
@@ -213,8 +212,12 @@ def Compound():
                 self[name] = returnObject
     return self
 
-# Defining main function
-def main():
+map = None
+
+# Defining main parsing function
+def parse(fileLocation):
+    global map
+    map = gzip.open(fileLocation, 'rb')
     # Burn the initial 0x0a tag
     map.read(1)
     # The root compound tag. Should always be the root. Has no name. 
@@ -223,12 +226,13 @@ def main():
     name = map.read(nameLength).decode()
     root = Compound()
 
-    pprint.pp(root)
+    # pprint.pp(root)
+    print(root)
     map.close()
 
 
 # Using the special variable 
 # __name__
 if __name__=="__main__":
-    main()
+    parse(sys.argv[1])
 
