@@ -29,19 +29,19 @@ id = {
 # Primitives
 def Byte():
     # GETTING NAME USED TO BE HERE
-    return int.from_bytes(map.read(1))
+    return int.from_bytes(map.read(1), byteorder="big", signed=True)
 
 def Short():
     # GETTING NAME USED TO BE HERE
-    return int.from_bytes(map.read(2))
+    return int.from_bytes(map.read(2), byteorder="big", signed=True)
 
 def Int():
     # GETTING NAME USED TO BE HERE
-    return int.from_bytes(map.read(4))
+    return int.from_bytes(map.read(4), byteorder="big", signed=True)
 
 def Long():
     # GETTING NAME USED TO BE HERE
-    return int.from_bytes(map.read(8))
+    return int.from_bytes(map.read(8), byteorder="big", signed=True)
 
 def Float():
     # GETTING NAME USED TO BE HERE
@@ -61,14 +61,14 @@ def List():
     list = []
 
     # Gets the tag
-    tag = int.from_bytes(map.read(1))
+    tag = int.from_bytes(map.read(1), byteorder="big", signed=False)
     if tag not in id:
-        print(f"Uknown tag: {tag}")
+        print(f"Unknown tag: {tag}")
         return list
     tag = id[tag]
 
     # Gets the length of the list
-    length = int.from_bytes(map.read(4))
+    length = int.from_bytes(map.read(4), byteorder="big", signed=True)
 
     # Returns a list of objects
     for i in range(length):
@@ -116,26 +116,26 @@ def List():
 # Arrays
 def Byte_Array():
     # GETTING NAME USED TO BE HERE
-    size = int.from_bytes(map.read(4))
+    size = int.from_bytes(map.read(4), byteorder="big", signed=True)
     array = []
     for i in range(size):
-        array.append(int.from_bytes(map.read(1)))
+        array.append(int.from_bytes(map.read(1), byteorder="big", signed=True))
     return array
 
 def Int_Array():
     # GETTING NAME USED TO BE HERE
-    size = int.from_bytes(map.read(4))
+    size = int.from_bytes(map.read(4), byteorder="big", signed=True)
     array = []
     for i in range(size):
-        array.append(int.from_bytes(map.read(4)))
+        array.append(int.from_bytes(map.read(4), byteorder="big", signed=True))
     return array
 
 def Long_Array():
     # GETTING NAME USED TO BE HERE
-    size = int.from_bytes(map.read(4))
+    size = int.from_bytes(map.read(4), byteorder="big", signed=True)
     array = []
     for i in range(size):
-        array.append(int.from_bytes(map.read(8)))
+        array.append(int.from_bytes(map.read(8), byteorder="big", signed=True))
     return array
     
 # Compound
@@ -151,9 +151,9 @@ def Compound():
             break
 
         # Gets the tag
-        tag = int.from_bytes(file_content, "big")
+        tag = int.from_bytes(file_content, byteorder="big", signed=False)
         if tag not in id:
-            print(f"Uknown tag: {tag}")
+            print(f"Unknown tag: {tag}")
             continue
         tag = id[tag]
 
