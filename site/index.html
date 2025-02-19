@@ -29,23 +29,27 @@
      <!-- 'https://{s}.somedomain.com/blabla/{z}/{x}/{y}{r}.png' -->
      <!-- {s} means one of the available subdomains (used sequentially to help with browser parallel requests per domain limitation; subdomain values are specified in options; a, b or c by default, can be omitted), {z} — zoom level, {x} and {y} — tile coordinates. {r} can be used to add "@2x" to the URL to load retina tiles. -->
     <script>
-        var map = L.map('map', {crs: L.CRS.Simple, fullscreenControl: true}).setView([0,0], 8);
+        var map = L.map('map', {crs: L.CRS.Simple, fullscreenControl: true});
         L.tileLayer('map/{z}/{x}/{y}.png', {
             noWrap: true,
-            minZoom: 0,
-            tileSize: 128,
-            maxZoom: 7,
-            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            tileSize: (128), // Previously multiplied by 16
+            // Substract everything by 4 to get propery scaling (2^4 = 16 which was the previous scaling applied on tileSize)
+            minZoom: 0-4,
+            maxNativeZoom: 4-4,
+            minNativeZoom:-4,
+            maxZoom: 13-4,
+            zoomOffset: 4,
+            attribution: 'pixle'
         }).addTo(map);
 
-        map.fitBounds([[-1000, -1000], [1000, 1000]]);
-
+        // map.fitBounds([[-1000, -1000], [1000, 1000]]);
+        map.setView([0,0], 0)
 
         var popup = L.popup();
         function onMapClick(e) {
             popup
                 .setLatLng(e.latlng)
-                .setContent("You clicked the map at " + e.latlng.toString())
+                .setContent("You clicked the map at z: " + (-e.latlng.lat - 64) + ", x: " + (e.latlng.lng - 64))
                 .openOn(map);
         }
         map.on('click', onMapClick);

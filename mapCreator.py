@@ -131,7 +131,7 @@ mapImage = [allColors[a] for a in tqdm(colors, desc='Writing Image')]
 image.putdata(mapImage)
 
 # So zoom 4 will be the 2048x2048 scale
-image = image.resize((512 * 2 ** scale,) * 2, Image.NEAREST)
+image = image.resize((128 * 2 ** scale,) * 2, Image.NEAREST)
 
 # Saves the image in the same location as the file as a png
 length = len(sys.argv[1])
