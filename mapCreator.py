@@ -1,6 +1,7 @@
 import parser
 import math
 from PIL import Image
+from tqdm import tqdm
 import sys
 
 # The base map colors used by Minecraft. Each one is multiplied to get all the possible map colors
@@ -83,12 +84,16 @@ scaleDict = {0: 128,
              3: 1024,
              4: 2048}
 
-
+# Everything above is base setup for processing
+# -----------------------------------------------
+# Everything below is for image processing based on above data
 
 # So with the scale, we can be very inefficient.
 # With each layer, we have to make 2^scale images along each axis
 # scale 0: 1(1x1) 256x256 image, 1: 4(2x2) 256x256 images, 2: 16(4x4) 256x256 images, 3: 64(8x8) 256x256 images, 4:(16x16) 256 256x256 images
 # This is because each tile is 256x256 in Leaflet. Each zoom level splits the tiles into 2. Or something like that.
+# I actually don't need to do this. Just set Leaflet to use 128x128. Still same number of images though. Less total data though.
+# Or will that mess with the size? Will have to implement first
 # I need to try leafleft before I understand
 
 # Getting values from the parser
@@ -98,17 +103,35 @@ banners = mapData["data"]["banners"]
 frames = mapData["data"]["frames"]
 zCenter = mapData["data"]["zCenter"]
 xCenter = mapData["data"]["xCenter"]
+print(xCenter, zCenter)
+print(zCenter - 2 ** (6+scale))
+# The z center moves according to the scale. Cause each time, it doubles the length and height.
+# scale 0: 0, 0
+# 1: 64, 64
+# 2: 192, 192
+# 3: 448, 448
+# 4: 960, 960
+# This means that from 0,1 + 64, 1,2, + 128, 2,3 + 256, 3,4 + 512
+# These are the centers of the maps though.
+# To get the top left we can simply subtract by the value 2^(6+scale) above.
+# Should we add 64 to make it 0? Would shift every map down right by 64 64
+# For scale 4, that means using 1984, 1984 
 
-# Despite the scales, the maps are still 128x128. Rather, it is the amount of area it covers.
+
+
+# All Minecraft Maps are 128x128 no matter the scale. Rather with scale, each pixel represents aan average of a bigger area of blocks. Max zoom, 1 pixel = 16x16 blocks
 # Create a new Image object
 image = Image.new( 'RGBA', (128, 128)) 
 
 # Converts from Minecraft map color index to actual RGB
 colors = mapData["data"]["colors"]
-mapImage = [allColors[a] for a in colors]
+mapImage = [allColors[a] for a in tqdm(colors, desc='Writing Image')]
 
 # Fills out the image pixel by pixel
 image.putdata(mapImage)
+
+# So zoom 4 will be the 2048x2048 scale
+image = image.resize((512 * 2 ** scale,) * 2, Image.NEAREST)
 
 # Saves the image in the same location as the file as a png
 length = len(sys.argv[1])
