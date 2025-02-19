@@ -3,6 +3,7 @@ import math
 from PIL import Image
 import sys
 
+# The base map colors used by Minecraft. Each one is multiplied to get all the possible map colors
 baseColors = [(0, 0, 0, 0),
               (127, 178, 56),
               (247, 233, 163),
@@ -66,6 +67,7 @@ baseColors = [(0, 0, 0, 0),
               (216, 175, 147),
               (127, 167, 150)]
 
+# The multipliers used by Minecraft
 mapColorMultipliers = [180, 220, 255, 135]
 
 def colorMultipler(baseColorTuple, multiplier):
@@ -75,28 +77,39 @@ def colorMultipler(baseColorTuple, multiplier):
 # Each color in data colors should correspond to the index in here.
 allColors = [colorMultipler(a, b) for a in baseColors for b in mapColorMultipliers]
 
-mapData = parser.parse(sys.argv[1])
-scale = mapData["data"]["scale"]
-
 scaleDict = {0: 128,
              1: 256,
              2: 512,
              3: 1024,
              4: 2048}
 
+
+
+# So with the scale, we can be very inefficient.
+# With each layer, we have to make 2^scale images along each axis
+# scale 0: 1(1x1) 256x256 image, 1: 4(2x2) 256x256 images, 2: 16(4x4) 256x256 images, 3: 64(8x8) 256x256 images, 4:(16x16) 256 256x256 images
+# This is because each tile is 256x256 in Leaflet. Each zoom level splits the tiles into 2. Or something like that.
+# I need to try leafleft before I understand
+
+# Getting values from the parser
+mapData = parser.parse(sys.argv[1])
+scale = mapData["data"]["scale"]
 banners = mapData["data"]["banners"]
-colors = mapData["data"]["colors"]
+frames = mapData["data"]["frames"]
 zCenter = mapData["data"]["zCenter"]
 xCenter = mapData["data"]["xCenter"]
 
 # Despite the scales, the maps are still 128x128. Rather, it is the amount of area it covers.
+# Create a new Image object
 image = Image.new( 'RGBA', (128, 128)) 
 
-# Converts from map data to actual RGB
+# Converts from Minecraft map color index to actual RGB
+colors = mapData["data"]["colors"]
 mapImage = [allColors[a] for a in colors]
 
+# Fills out the image pixel by pixel
 image.putdata(mapImage)
 
+# Saves the image in the same location as the file as a png
 length = len(sys.argv[1])
-
 image.save(sys.argv[1][0:length-4] + ".png")
