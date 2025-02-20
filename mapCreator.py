@@ -111,8 +111,8 @@ def bottomRight(topLeft, scale):
 def normalizeAnchor(anchor):
     return tuple( abs(value % 2048) for value in anchor )
 
-def folderFileNames(startCoords):
-    return tuple( value // 2048 for value in startCoords)
+def folderFileNames(startCoords, scale):
+    return tuple( value // scaleDict[scale] for value in startCoords)
 
 # I need a sorting funcion for how I want to sort it as well. Whether that's time, newer maps always on top, or size, smaller maps always on top.
 
@@ -211,9 +211,6 @@ mapData = dict(sorted(mapData.items(), key=lambda item: item[1]["scale"], revers
 # for map in mapData:
 #     print("Filename: " + str(map) + "Scale: " + str(mapData[map]["scale"]) + " Epoch: " + str(mapData[map]["epoch"]))
 
-# Reference for using default dict
-testDict = defaultdict(list)
-testDict["lol"].append(1)
 
 # We then go through the mapData dict and store in a diferent dict using topleft coord based on scale 4 as the key. This'll append to the list or create a list if there is none
 # This one actually needs to be a dict cause we need to group the maps. Cool.
@@ -227,7 +224,7 @@ for key, map in mapData.items():
 
 for startCoords, lists in scale4maps.items():
     print(str(startCoords))
-    folder, file = folderFileNames(startCoords)
+    folder, file = folderFileNames(startCoords, 4)
     # This iterates over every map in the scale 4 map area
     bigImage = Image.new( 'RGBA', (2048, 2048), (0, 0, 0, 0) )
     for map in lists:
@@ -240,12 +237,38 @@ for startCoords, lists in scale4maps.items():
         image = image.resize((128 * 2 ** mapData[key]["scale"],) * 2, Image.NEAREST)
         bigImage.paste(image, normalizeAnchor(map["anchor"]))
         print("Anchor: " + str(map["anchor"]) + " Normalized: " + str(normalizeAnchor(map["anchor"])))
+    
+    # Add slicing here
+    for i in range(1, 5):
+        for x in range(2 ** i):
+            # THE MATH FOR DIR AND IMAGE NAME IS WRONG
+            dir = sys.argv[2] + f"{i}/{(startCoords[0] // 2 ** i) // scaleDict[scaleToZoom[i]]}"
+            if not os.path.isdir(dir):
+                os.makedirs(dir)
+            for y in range(2 ** i):
+                print("x: " + str(x) + ", y: " + str(y))
+                # x * (2048 / 2 ** i) This is the math for the left bound
+                # y * (2048 / 2 ** i) This is the math for the upper bound
+                # (x+1) * (2048 / 2 ** i) This is the math for the right bound
+                # (y+1) * (2048 / 2 ** i) This is the math for the lower bound
+                bounds = ((x * 2048 // 2 ** i), (y * 2048 // 2 ** i), ((x+1) * 2048 // 2 ** i), ((y+1) * 2048 // 2 ** i))
+
+                image = bigImage.crop(bounds)
+                image = image.resize((128,) * 2, Image.NEAREST)
+                # Get the right image name:
+                
+                image.save(dir + f"/{(startCoords[1] // 2 ** i) // scaleDict[scaleToZoom[i]]}.png")
+                image.close()
+                
+    
+    # Saves the lowest level zoom
     zoomFolder = scaleToZoom[4]
     dir = sys.argv[2] + f"{zoomFolder}/{folder}"
     if not os.path.isdir(dir):
         os.makedirs(dir)
     bigImage = bigImage.resize((128,) * 2, Image.NEAREST)
     bigImage.save(dir + f"/{file}.png")
+    
     bigImage.close()
     print("-----")
 
