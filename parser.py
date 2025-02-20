@@ -25,31 +25,24 @@ id = {
 
 # Primitives
 def Byte():
-    # GETTING NAME USED TO BE HERE
     return int.from_bytes(map.read(1), byteorder="big", signed=True)
 
 def Short():
-    # GETTING NAME USED TO BE HERE
     return int.from_bytes(map.read(2), byteorder="big", signed=True)
 
 def Int():
-    # GETTING NAME USED TO BE HERE
     return int.from_bytes(map.read(4), byteorder="big", signed=True)
 
 def Long():
-    # GETTING NAME USED TO BE HERE
     return int.from_bytes(map.read(8), byteorder="big", signed=True)
 
 def Float():
-    # GETTING NAME USED TO BE HERE
     return float.fromhex(map.read(4).hex())
 
 def Double():
-    # GETTING NAME USED TO BE HERE
     return float.fromhex(map.read(8).hex())
 
 def String():
-    # GETTING NAME USED TO BE HERE
     length = int.from_bytes(map.read(2), byteorder="big", signed=False)
     return map.read(length).decode()
 
@@ -112,7 +105,6 @@ def List():
 
 # Arrays
 def Byte_Array():
-    # GETTING NAME USED TO BE HERE
     size = int.from_bytes(map.read(4), byteorder="big", signed=True)
     array = []
     for i in range(size):
@@ -120,7 +112,6 @@ def Byte_Array():
     return array
 
 def Int_Array():
-    # GETTING NAME USED TO BE HERE
     size = int.from_bytes(map.read(4), byteorder="big", signed=True)
     array = []
     for i in range(size):
@@ -128,7 +119,6 @@ def Int_Array():
     return array
 
 def Long_Array():
-    # GETTING NAME USED TO BE HERE
     size = int.from_bytes(map.read(4), byteorder="big", signed=True)
     array = []
     for i in range(size):
@@ -137,7 +127,6 @@ def Long_Array():
     
 # Compound
 def Compound():
-    # GETTING NAME USED TO BE HERE
     # This should be a recursive function. It returns a dictionary. It returns whenever the end tag is encountered. This calls every other function. It adds it to itself's dictionary
     self = {}
     while 1 == 1:
