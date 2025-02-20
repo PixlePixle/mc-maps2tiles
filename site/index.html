@@ -5,13 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <!-- CSS -->
-     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css">
+
+
+    <!-- Leaflet https://leafletjs.com/ -->
+    <!-- https://github.com/Leaflet/Leaflet/blob/main/LICENSE -->
 
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
     crossorigin=""/> 
-
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
@@ -29,7 +32,10 @@
      <!-- 'https://{s}.somedomain.com/blabla/{z}/{x}/{y}{r}.png' -->
      <!-- {s} means one of the available subdomains (used sequentially to help with browser parallel requests per domain limitation; subdomain values are specified in options; a, b or c by default, can be omitted), {z} — zoom level, {x} and {y} — tile coordinates. {r} can be used to add "@2x" to the URL to load retina tiles. -->
     <script>
-        var map = L.map('map', {crs: L.CRS.Simple, fullscreenControl: true});
+        var map = L.map('map', {crs: L.CRS.Simple});
+        // map.attributionControl.setPrefix('<a href="https://leafletjs.com/">Leaflet</a>');
+        // https://groups.google.com/g/leaflet-js/c/fA6M7fbchOs/m/JTNVhqdc7JcJ
+        map.attributionControl.setPrefix('');
         L.tileLayer('map/{z}/{x}/{y}.png', {
             noWrap: true,
             tileSize: (128), // Previously multiplied by 16
@@ -37,9 +43,9 @@
             minZoom: 0-4,
             maxNativeZoom: 4-4,
             minNativeZoom:-4,
-            maxZoom: 13-4,
+            maxZoom: 8-4,
             zoomOffset: 4,
-            attribution: 'pixle'
+            attribution: 'pixle\'s Vanilla Server'
         }).addTo(map);
 
         // map.fitBounds([[-1000, -1000], [1000, 1000]]);

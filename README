@@ -1,2 +1,8 @@
 Installed Pillow
 Installed tqdm
+At least Python 3.7
+
+Considerations:
+ - Website should be set up properly to display tiles.
+  - Therefore, work on setting up the splicing.
+ - Afterwards, consider cleaning up code.

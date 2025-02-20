@@ -1,5 +1,7 @@
 import parser
 import math
+import os
+import glob
 from PIL import Image
 from tqdm import tqdm
 import sys
@@ -87,52 +89,147 @@ scaleDict = {0: 128,
 # Everything above is base setup for processing
 # -----------------------------------------------
 # Everything below is for image processing based on above data
+# What I want to do is create the lowest zoom and go in.
+# Lowest image, create 
+# This involves splitting everything above zoom 0.
+# So for the largest scale keeping track of 256 left corners.
+# We can split using Image.crop: https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.crop
 
 # So with the scale, we can be very inefficient.
 # With each layer, we have to make 2^scale images along each axis
-# scale 0: 1(1x1) 256x256 image, 1: 4(2x2) 256x256 images, 2: 16(4x4) 256x256 images, 3: 64(8x8) 256x256 images, 4:(16x16) 256 256x256 images
-# This is because each tile is 256x256 in Leaflet. Each zoom level splits the tiles into 2. Or something like that.
-# I actually don't need to do this. Just set Leaflet to use 128x128. Still same number of images though. Less total data though.
-# Or will that mess with the size? Will have to implement first
-# I need to try leafleft before I understand
+# scale 0: 1(1x1) 128x128 image, 1: 4(2x2) 128x128 images, 2: 16(4x4) 128x128 images, 3: 64(8x8) 128x128 images, 4:(16x16) 256 128x128 images
+# This is because each tile is set to be 128x128 in Leaflet (Default was 256). Each zoom level splits the tiles into 4 (2^2). Or something like that.
+# X, -Left +Right
+# Y, -Down +Up
+# Folder is Zoom Level
+# scale: 0 = 4
+# scale: 1 = 3
+# scale: 2 = 2
+# scale: 3 = 1
+# scale: 4 = 0
+# The solution is (4 - scale) to get the correct folder name
+# Nested Folder is X, Left Right
+# scale 0: anchor.x/64 = Folder
+# scale 1: anchor.x/192 = Folder
+# scale 2: anchor.x/448 = Folder
+# scale 3: anchor.x/960 = Folder
+# scale 4: anchor.x/1984 = Folder
+# Image Name is Y, Up Down
+# scale 0: anchor.z/64 = File Name
+# scale 1: anchor.z/192 = File Name
+# scale 2: anchor.z/448 = File Name
+# scale 3: anchor.z/960 = File Name
+# scale 4: anchor.z/1984 = File Name
 
-# Getting values from the parser
-mapData = parser.parse(sys.argv[1])
-scale = mapData["data"]["scale"]
-banners = mapData["data"]["banners"]
-frames = mapData["data"]["frames"]
-zCenter = mapData["data"]["zCenter"]
-xCenter = mapData["data"]["xCenter"]
-print(xCenter, zCenter)
-print(zCenter - 2 ** (6+scale))
-# The z center moves according to the scale. Cause each time, it doubles the length and height.
-# scale 0: 0, 0
-# 1: 64, 64
-# 2: 192, 192
-# 3: 448, 448
-# 4: 960, 960
-# This means that from 0,1 + 64, 1,2, + 128, 2,3 + 256, 3,4 + 512
-# These are the centers of the maps though.
-# To get the top left we can simply subtract by the value 2^(6+scale) above.
-# Should we add 64 to make it 0? Would shift every map down right by 64 64
-# For scale 4, that means using 1984, 1984 
+# Get all the maps in the folder. Sort them by size, highest zoom to lowest. Skip all non player maps.
+# Create images using all the scale 4 maps. Making them to actual coverage size. In the instance a map covers the same, get the time of the map modified. Newest map written on top of the old map. Don't replace it, that way we can preserve old data if new map doesn't cover it all
+# https://docs.python.org/3/library/os.path.html#os.path.getmtime
+# Then proceed through the scale3, adding them onto the scale 4 maps if the bounds are within topleft + 1024.
+# Make a new image the size of scale 4 if one doesn't exist for the area and then put in correct position.
+# Repeat for scale 2, 1, and 0.
+# That'll give us the base images to use to make tiles for everything else.
+# We then will cut up the images as needed for every zoom and then resize them to the correct size of 128x128
+
+usage = '''
+Usage:
+    py mapCreator.py <source dir> <output dir>
+'''
+
+if len( sys.argv ) < 3:
+    print(usage)
+    exit()
+
+sourcePath = sys.argv[1]
+outputPath = sys.argv[2]
+
+# Gets all files in the source directory
+filenames = []
+for filename in glob.glob(os.path.join(sourcePath, 'map_*.dat')):
+    filenames.append(filename)
+print(f"Files found: {len(filenames)}")
+
+# I should probably not get the map directory instead but keep it as filenames. I need the info from them (time).
+# or not... apparently iterating over dictionaries iterates over keys and not values
+# Though doing mapData[key] could add slowdowns
+# That's why you iterate with `for key,value in dict.items()`
+# Iterates over the source directory files and selects what should be player maps only.
+mapData = {}
+for filename in tqdm(filenames, desc=('Picking player maps')):
+    temp = parser.parse(filename)
+    temp = temp["data"]
+    if temp["unlimitedTracking"] == 0:
+        # colors = temp["colors"]
+        temp["colors"] = [allColors[a] for a in temp["colors"]]
+        mapData[filename] = temp
+print(f"Player maps count: {len(mapData)}")
+
+
+count = 0
+# For now, just makes images from the player maps
+for key in mapData:
+    image = Image.new( 'RGBA', (128, 128)) 
+
+    # Fills out the image pixel by pixel
+    image.putdata(mapData[key]["colors"])
+
+    # So zoom 4 will be the 2048x2048 scale
+    image = image.resize((128 * 2 ** mapData[key]["scale"],) * 2, Image.NEAREST)
+
+    # Saves the image in the same location as the file as a png
+    image.save(sys.argv[2] + f"/{count}.png")
+    count = count + 1
 
 
 
-# All Minecraft Maps are 128x128 no matter the scale. Rather with scale, each pixel represents aan average of a bigger area of blocks. Max zoom, 1 pixel = 16x16 blocks
-# Create a new Image object
-image = Image.new( 'RGBA', (128, 128)) 
 
-# Converts from Minecraft map color index to actual RGB
-colors = mapData["data"]["colors"]
-mapImage = [allColors[a] for a in tqdm(colors, desc='Writing Image')]
 
-# Fills out the image pixel by pixel
-image.putdata(mapImage)
 
-# So zoom 4 will be the 2048x2048 scale
-image = image.resize((128 * 2 ** scale,) * 2, Image.NEAREST)
 
-# Saves the image in the same location as the file as a png
-length = len(sys.argv[1])
-image.save(sys.argv[1][0:length-4] + ".png")
+
+
+
+
+# Code to make a single image (reference)
+# ---------------------------------------------
+# # Get these, put them in a list or dict or something
+# # Getting values from the parser
+# mapData = parser.parse(sys.argv[1])
+# scale = mapData["data"]["scale"]
+# banners = mapData["data"]["banners"]
+# frames = mapData["data"]["frames"]
+# zCenter = mapData["data"]["zCenter"]
+# xCenter = mapData["data"]["xCenter"]
+# print(xCenter, zCenter)
+
+# # Calculates the topleft coord from the center. This is done because each map expands down and right. Therefore, no matter the zoom, maps in the same section have the same top left corner.
+# # anchor = [xCenter - (64 * 2 ** scale) + 64, zCenter - (64 * 2 ** scale)]
+# anchor = [xCenter - (64 * 2 ** scale) + 64, zCenter - (64 * 2 ** scale) + 64]
+# print(anchor)
+
+# # The z center moves according to the scale. Cause each time, it doubles the length and height.
+# # scale 0: 0, 0
+# # 1: 64, 64
+# # 2: 192, 192
+# # 3: 448, 448
+# # 4: 960, 960
+# # This means that from 0->1 + 64, 1->2, + 128, 2->3 + 256, 3->4 + 512
+# # That is how we get the math 64 * 2 ** scale
+
+
+# # All Minecraft Maps are 128x128 no matter the scale. Rather with scale, each pixel represents aan average of a bigger area of blocks. Max zoom, 1 pixel = 16x16 blocks
+# # Create a new Image object
+# image = Image.new( 'RGBA', (128, 128)) 
+
+# # Converts from Minecraft map color index to actual RGB
+# colors = mapData["data"]["colors"]
+# mapImage = [allColors[a] for a in tqdm(colors, desc='Writing Image')]
+
+# # Fills out the image pixel by pixel
+# image.putdata(mapImage)
+
+# # So zoom 4 will be the 2048x2048 scale
+# image = image.resize((128 * 2 ** scale,) * 2, Image.NEAREST)
+
+# # Saves the image in the same location as the file as a png
+# length = len(sys.argv[1])
+# image.save(sys.argv[1][0:length-4] + ".png")
