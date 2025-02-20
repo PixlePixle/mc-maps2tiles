@@ -42,7 +42,7 @@
             // Substract everything by 4 to get propery scaling (2^4 = 16 which was the previous scaling applied on tileSize)
             minZoom: 0-4,
             maxNativeZoom: 4-4,
-            minNativeZoom:-4,
+            minNativeZoom:0-4,
             maxZoom: 8-4,
             zoomOffset: 4,
             attribution: 'pixle\'s Vanilla Server'
@@ -55,7 +55,7 @@
         function onMapClick(e) {
             popup
                 .setLatLng(e.latlng)
-                .setContent("You clicked the map at z: " + (-e.latlng.lat - 64) + ", x: " + (e.latlng.lng - 64))
+                .setContent("Zoom: "+ map.getZoom() +" You clicked the map at z: " + (-e.latlng.lat - 64) + ", x: " + (e.latlng.lng - 64))
                 .openOn(map);
         }
         map.on('click', onMapClick);
