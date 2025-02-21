@@ -223,7 +223,7 @@ for key, map in mapData.items():
 # We then go through the dictionary and create an image based on each entry
 # The images should be in their own dictionary. The key is the coords. The value is the image. No actually, it's fine if it's just a list. In fact we should just save them as they're made.
 
-for level4Coords, lists in scale4maps.items():
+for level4Coords, lists in tqdm(scale4maps.items(), desc="Creating map images"):
     print(str(level4Coords))
     # This iterates over every map in the scale 4 map area
     bigImage = Image.new( 'RGBA', (2048, 2048), (0, 0, 0, 0) )
@@ -236,7 +236,7 @@ for level4Coords, lists in scale4maps.items():
         # Resize to proper size. So zoom 4 will be the 2048x2048 scale
         image = image.resize((128 * 2 ** mapData[key]["scale"],) * 2, Image.NEAREST)
         bigImage.paste(image, normalizeAnchor(map["anchor"]))
-        print("Anchor: " + str(map["anchor"]) + " Normalized: " + str(normalizeAnchor(map["anchor"])))
+        # print("Anchor: " + str(map["anchor"]) + " Normalized: " + str(normalizeAnchor(map["anchor"])))
     # Info REMOVE -=-=-=-=-=-=-
     print("Zoom: 0")
     
@@ -255,31 +255,36 @@ for level4Coords, lists in scale4maps.items():
                 # (y+1) * (2048 / 2 ** i) This is the math for the lower bound
                 bounds = ((x * 2048 // 2 ** i), (y * 2048 // 2 ** i), ((x+1) * 2048 // 2 ** i), ((y+1) * 2048 // 2 ** i))
 
-
-
+                # Crop the specific region for the scale
                 image = bigImage.crop(bounds)
+
+                # If the selected area is empty, skip making the image
+                if image.getbbox() is None:
+                    image.close()
+                    continue
+
+                # Resize to the correct size for Leaflet
                 image = image.resize((128,) * 2, Image.NEAREST)
-                
-                imageCoords = (level4Coords[0], level4Coords[1])
-                print(imageCoords)
                 # Get the right image name:
-                folder, file = folderFileNames(imageCoords, scaleToZoom[i])
+                folder, file = folderFileNames(level4Coords, scaleToZoom[i])
                 print("folder: " + str(folder + math.copysign(x, folder)) + " file: " + str(file + math.copysign(y, file)))
-                dir = sys.argv[2] + f"{i}/{folder + x}"
+                dir = os.path.join(sys.argv[2], f"{i}", f"{folder + x}")
                 if not os.path.isdir(dir):
                     os.makedirs(dir)
-                image.save(dir + f"/{file + y}.png")
+                dir = os.path.join(dir, f"{file + y}.png")
+                image.save(dir)
                 image.close()
         print("----------------")
     
     # Saves the lowest level zoom
     folder, file = folderFileNames(level4Coords, 4)
     zoomFolder = scaleToZoom[4]
-    dir = sys.argv[2] + f"{zoomFolder}/{folder}"
+    dir = os.path.join(sys.argv[2], f"{zoomFolder}", f"{folder}")
     if not os.path.isdir(dir):
         os.makedirs(dir)
     bigImage = bigImage.resize((128,) * 2, Image.NEAREST)
-    bigImage.save(dir + f"/{file}.png")
+    dir = os.path.join(dir, f"{file}.png")
+    bigImage.save(dir)
     
     bigImage.close()
     print("-----")

@@ -25,9 +25,7 @@
 </head>
 <body>
     
-    <div id="map">
-        Hello World!
-    </div>
+    <div id="map"></div>
     <!-- Javascript must be performed after script inclusion and div -->
      <!-- 'https://{s}.somedomain.com/blabla/{z}/{x}/{y}{r}.png' -->
      <!-- {s} means one of the available subdomains (used sequentially to help with browser parallel requests per domain limitation; subdomain values are specified in options; a, b or c by default, can be omitted), {z} — zoom level, {x} and {y} — tile coordinates. {r} can be used to add "@2x" to the URL to load retina tiles. -->
@@ -45,17 +43,19 @@
             minNativeZoom:0-4,
             maxZoom: 8-4,
             zoomOffset: 4,
-            attribution: 'pixle\'s Vanilla Server'
+            attribution: 'pixle\'s Vanilla Server',
+            keepBuffer: 4
         }).addTo(map);
+    
 
         // map.fitBounds([[-1000, -1000], [1000, 1000]]);
         map.setView([0,0], 0)
-
+        var precision = 10
         var popup = L.popup();
         function onMapClick(e) {
             popup
                 .setLatLng(e.latlng)
-                .setContent("Zoom: "+ map.getZoom() +" You clicked the map at z: " + (-e.latlng.lat - 64) + ", x: " + (e.latlng.lng - 64))
+                .setContent("z: " + Math.floor((-e.latlng.lat - 64) * precision) / precision + ", x: " + Math.floor((e.latlng.lng - 64) * precision) / precision)
                 .openOn(map);
         }
         map.on('click', onMapClick);
