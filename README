@@ -1,8 +1,9 @@
 Installed Pillow
 Installed tqdm
 At least Python 3.7
+At least Minecraft World created in 1.20
 
 Considerations:
- - Website should be set up properly to display tiles.
-  - Therefore, work on setting up the splicing.
- - Afterwards, consider cleaning up code.
+ - Refactor the code to be cleaner
+    - Make methods?
+ - Set up support for other dimensions. This means creating new layers in leaflet and changing python code.

@@ -1,5 +1,6 @@
 import gzip
 import sys
+from pprint import pprint
 
 # Things to note, Python just uses more general types
 # Therefore, int can be used for Byte, Short, Int, and Long
@@ -50,7 +51,7 @@ def String():
 def List():
     list = []
 
-    # Gets the tag
+    # Gets the type
     tag = int.from_bytes(map.read(1), byteorder="big", signed=False)
     if tag not in id:
         print(f"Unknown tag: {tag}")
@@ -99,9 +100,7 @@ def List():
     return list
 
 
-# The array's are improperly implemented for everything besides Byte.
-# The arrays need to get the tag objects, they aren't simply the values. That would be a list.
-# This shouldn't be relevant for maps as they don't use any arrays except byte arrays but something to keep in mind.
+# Byte is correctly implemented. Unsure of the other arrays.
 
 # Arrays
 def Byte_Array():
@@ -202,10 +201,12 @@ def Compound():
 map = None
 
 # Defining main parsing function
+# TODO: Update this to check whether the file is compressed or not and
+# act accordingly.
 def parse(fileLocation):
     global map
     map = gzip.open(fileLocation, 'rb')
-    # Burn the initial 0x0a tag
+    # Burn the initial 0x0a (10) tag
     map.read(1)
     # The root compound tag. Should always be the root. Has no name. 
     # Therefore, this will only read the two bytes for the name length (0)
@@ -219,5 +220,5 @@ def parse(fileLocation):
 # Using the special variable 
 # __name__
 if __name__=="__main__":
-    print(parse(sys.argv[1]))
+    pprint(parse(sys.argv[1]))
 

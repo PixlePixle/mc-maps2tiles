@@ -154,6 +154,8 @@ def folderFileNames(level4Coords, scale):
 # scale 3: anchor.z/960 = File Name
 # scale 4: anchor.z/1984 = File Name
 
+# Is this different for different dimensions?
+
 # Get all the maps in the folder. Sort them by size, highest zoom to lowest. Skip all non player maps.
 # Create images using all the scale 4 maps. Making them to actual coverage size. In the instance a map covers the same, get the time of the map modified. Newest map written on top of the old map. Don't replace it, that way we can preserve old data if new map doesn't cover it all
 # https://docs.python.org/3/library/os.path.html#os.path.getmtime
@@ -162,6 +164,10 @@ def folderFileNames(level4Coords, scale):
 # Repeat for scale 2, 1, and 0.
 # That'll give us the base images to use to make tiles for everything else.
 # We then will cut up the images as needed for every zoom and then resize them to the correct size of 128x128
+
+
+
+
 
 usage = '''
 Usage:

@@ -1,0 +1,11 @@
+{'DataVersion': 3955,
+ 'data': {'banners': [],
+          'colors': [2],
+          'dimension': 'minecraft:overworld',
+          'frames': [],
+          'locked': 0,
+          'scale': 0,
+          'trackingPosition': 1,
+          'unlimitedTracking': 0,
+          'xCenter': -128,
+          'zCenter': 256}}
