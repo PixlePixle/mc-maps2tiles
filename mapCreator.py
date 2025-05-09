@@ -144,18 +144,21 @@ endMapData = {}
 for filename in tqdm(filenames, desc=('Picking player maps')):
     temp = parser.parse(filename)
     temp = temp["data"]
-    if "unlimitedTracking" in temp:
-        if temp["unlimitedTracking"] == 0:
-            temp["colors"] = [allColors[a] for a in temp["colors"]]
-            temp["epoch"] = os.path.getmtime(filename)
-            # Set's the anchor. This is the center of the top left most scale 0 map as this lets us start at 0,0
-            temp["anchor"] = [temp["xCenter"] - (64 * 2 ** temp["scale"]) + 64, temp["zCenter"] - (64 * 2 ** temp["scale"]) + 64]
-            if temp["dimension"] == "minecraft:overworld":
-                overworldMapData[filename] = temp
-            elif temp["dimension"] == "minecraft:nether":
-                netherMapData[filename] = temp
-            else:
-                endMapData[filename] = temp
+    if "scale" not in temp:
+        temp["scale"] = 0
+    if "unlimitedTracking" not in temp:
+        temp["unlimitedTracking"] = 0
+    if temp["unlimitedTracking"] == 0:
+        temp["colors"] = [allColors[a] for a in temp["colors"]]
+        temp["epoch"] = os.path.getmtime(filename)
+        # Set's the anchor. This is the center of the top left most scale 0 map as this lets us start at 0,0
+        temp["anchor"] = [temp["xCenter"] - (64 * 2 ** temp["scale"]) + 64, temp["zCenter"] - (64 * 2 ** temp["scale"]) + 64]
+        if temp["dimension"] == "minecraft:overworld":
+            overworldMapData[filename] = temp
+        elif temp["dimension"] == "minecraft:the_nether":
+            netherMapData[filename] = temp
+        else:
+            endMapData[filename] = temp
 print(f"Player maps count: {len(overworldMapData) + len(netherMapData) + len(endMapData)}")
 
 # sort mapData by time modified
@@ -172,16 +175,20 @@ endMapData = dict(sorted(endMapData.items(), key=lambda item: item[1]["scale"], 
 
 # We then go through the mapData dict and store in a diferent dict using topleft coord based on scale 4 as the key. This'll append to the list or create a list if there is none
 # This one actually needs to be a dict cause we need to group the maps. Cool.
-scale4maps = defaultdict(list)
+
 
 def createScale4Maps(mapData):
+    scale4maps = defaultdict(list)
     for key, map in mapData.items():
         scale4maps[roundDown(map["anchor"], 4)].append(map)
+    return scale4maps
 
 
 # We then go through the dictionary and create an image based on each entry
 # The images should be in their own dictionary. The key is the coords. The value is the image. No actually, it's fine if it's just a list. In fact we should just save them as they're made.
-def createImages(scale4maps, mapData, dimension):
+def createImages(scale4maps, dimension):
+    if scale4maps is None:
+        return
     for level4Coords, lists in tqdm(scale4maps.items(), desc="Creating map images and subimages"):
         # This iterates over every map in the scale 4 map area
         bigImage = Image.new( 'RGBA', (2048, 2048), (0, 0, 0, 0) )
@@ -192,7 +199,7 @@ def createImages(scale4maps, mapData, dimension):
             image.putdata(map["colors"])
 
             # Resize to proper size. So zoom 4 will be the 2048x2048 scale
-            image = image.resize((128 * 2 ** mapData[key]["scale"],) * 2, Image.NEAREST)
+            image = image.resize((128 * 2 ** map["scale"],) * 2, Image.NEAREST)
             bigImage.paste(image, normalizeAnchor(map["anchor"]))
         
         # Slices the image to make each zoom level
@@ -217,7 +224,7 @@ def createImages(scale4maps, mapData, dimension):
                     image = image.resize((128,) * 2, Image.NEAREST)
                     # Get the right image name:
                     folder, file = folderFileNames(level4Coords, scaleToZoom[i])
-                    dir = os.path.join(sys.argv[2], f"{i}", f"{folder + x}")
+                    dir = os.path.join(sys.argv[2], dimension, f"{i}", f"{folder + x}")
                     if not os.path.isdir(dir):
                         os.makedirs(dir)
                     dir = os.path.join(dir, f"{file + y}.png")
@@ -227,7 +234,7 @@ def createImages(scale4maps, mapData, dimension):
         # Saves the lowest level zoom
         folder, file = folderFileNames(level4Coords, 4)
         zoomFolder = scaleToZoom[4]
-        dir = os.path.join(sys.argv[2], f"{zoomFolder}", f"{folder}")
+        dir = os.path.join(sys.argv[2], dimension, f"{zoomFolder}", f"{folder}")
         if not os.path.isdir(dir):
             os.makedirs(dir)
         bigImage = bigImage.resize((128,) * 2, Image.NEAREST)
@@ -236,12 +243,14 @@ def createImages(scale4maps, mapData, dimension):
         bigImage.close()
 
 
+print("Overworld")
+result = createScale4Maps(overworldMapData)
+createImages(result, "overworld")
 
-createScale4Maps(overworldMapData)
-createImages(scale4maps, overworldMapData, "overworld")
+print("Nether")
+result = createScale4Maps(netherMapData)
+createImages(result, "nether")
 
-createScale4Maps(netherMapData)
-createImages(scale4maps, netherMapData, "nether")
-
-createScale4Maps(endMapData)
-createImages(scale4maps, endMapData, "end")
+print("End")
+result = createScale4Maps(endMapData)
+createImages(result, "end")

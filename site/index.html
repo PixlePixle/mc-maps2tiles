@@ -30,10 +30,8 @@
      <!-- 'https://{s}.somedomain.com/blabla/{z}/{x}/{y}{r}.png' -->
      <!-- {s} means one of the available subdomains (used sequentially to help with browser parallel requests per domain limitation; subdomain values are specified in options; a, b or c by default, can be omitted), {z} — zoom level, {x} and {y} — tile coordinates. {r} can be used to add "@2x" to the URL to load retina tiles. -->
     <script>
-        var map = L.map('map', {crs: L.CRS.Simple});
         // map.attributionControl.setPrefix('<a href="https://leafletjs.com/">Leaflet</a>');
         // https://groups.google.com/g/leaflet-js/c/fA6M7fbchOs/m/JTNVhqdc7JcJ
-        map.attributionControl.setPrefix('');
         var Overworld = L.tileLayer('map/overworld/{z}/{x}/{y}.png', {
             noWrap: true,
             tileSize: (128), // Previously multiplied by 16
@@ -68,16 +66,31 @@
             attribution: 'End | pixle\'s Vanilla Server',
             keepBuffer: 4
         });
-    
+        var baseMaps = {
+            "Overworld": Overworld,
+            "Nether": Nether,
+            "End": End
+        };
+        
+        var map = L.map('map', {crs: L.CRS.Simple, layers: [Overworld]});
+        map.attributionControl.setPrefix('');
+        var layerControl = L.control.layers(baseMaps, null, {collapsed:false}).addTo(map);
 
         // map.fitBounds([[-1000, -1000], [1000, 1000]]);
         map.setView([0,0], 0)
         var precision = 10
         var popup = L.popup();
         function onMapClick(e) {
-            popup
+            if(map.hasLayer(Overworld) || map.hasLayer(End))
+                popup
                 .setLatLng(e.latlng)
                 .setContent("z: " + Math.floor((-e.latlng.lat - 64) * precision) / precision + ", x: " + Math.floor((e.latlng.lng - 64) * precision) / precision)
+                .openOn(map);
+            
+            if(map.hasLayer(Nether))
+                popup
+                .setLatLng(e.latlng)
+                .setContent("Overworld z: " + (Math.floor((-e.latlng.lat - 64) * precision) / precision)/8 + ", x: " + (Math.floor((e.latlng.lng - 64) * precision) / precision)/8 + "<br />z: " + Math.floor((-e.latlng.lat - 64) * precision) / precision + ", x: " + Math.floor((e.latlng.lng - 64) * precision) / precision)
                 .openOn(map);
         }
         map.on('click', onMapClick);
