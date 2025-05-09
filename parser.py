@@ -1,4 +1,5 @@
 import gzip
+import struct
 import sys
 from pprint import pprint
 
@@ -38,10 +39,11 @@ def Long():
     return int.from_bytes(map.read(8), byteorder="big", signed=True)
 
 def Float():
-    return float.fromhex(map.read(4).hex())
+    return struct.unpack('!f', map.read(4))[0]
+
 
 def Double():
-    return float.fromhex(map.read(8).hex())
+    return struct.unpack('!d', map.read(8))[0]
 
 def String():
     length = int.from_bytes(map.read(2), byteorder="big", signed=False)

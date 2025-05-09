@@ -153,11 +153,11 @@ for filename in tqdm(filenames, desc=('Picking player maps')):
         temp["epoch"] = os.path.getmtime(filename)
         # Set's the anchor. This is the center of the top left most scale 0 map as this lets us start at 0,0
         temp["anchor"] = [temp["xCenter"] - (64 * 2 ** temp["scale"]) + 64, temp["zCenter"] - (64 * 2 ** temp["scale"]) + 64]
-        if temp["dimension"] == "minecraft:overworld":
+        if temp["dimension"] == "minecraft:overworld" or temp["dimension"] == 0:
             overworldMapData[filename] = temp
-        elif temp["dimension"] == "minecraft:the_nether":
+        elif temp["dimension"] == "minecraft:the_nether" or temp["dimension"] == -1:
             netherMapData[filename] = temp
-        else:
+        else: # "the_end"
             endMapData[filename] = temp
 print(f"Player maps count: {len(overworldMapData) + len(netherMapData) + len(endMapData)}")
 

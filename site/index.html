@@ -81,19 +81,24 @@
         var precision = 10
         var popup = L.popup();
         function onMapClick(e) {
-            if(map.hasLayer(Overworld) || map.hasLayer(End))
-                popup
-                .setLatLng(e.latlng)
-                .setContent("z: " + Math.floor((-e.latlng.lat - 64) * precision) / precision + ", x: " + Math.floor((e.latlng.lng - 64) * precision) / precision)
-                .openOn(map);
+            if(map.hasLayer(Overworld) || map.hasLayer(End));
+                // popup
+                // .setLatLng(e.latlng)
+                // .setContent("z: " + Math.floor((-e.latlng.lat - 64) * precision) / precision + ", x: " + Math.floor((e.latlng.lng - 64) * precision) / precision)
+                // .openOn(map);
             
             if(map.hasLayer(Nether))
                 popup
                 .setLatLng(e.latlng)
-                .setContent("Overworld z: " + (Math.floor((-e.latlng.lat - 64) * precision) / precision)/8 + ", x: " + (Math.floor((e.latlng.lng - 64) * precision) / precision)/8 + "<br />z: " + Math.floor((-e.latlng.lat - 64) * precision) / precision + ", x: " + Math.floor((e.latlng.lng - 64) * precision) / precision)
+                .setContent("Overworld x: " + (Math.floor((e.latlng.lng - 64) * precision) / precision)/8 + ", z: " + (Math.floor((-e.latlng.lat - 64) * precision) / precision)/8)
                 .openOn(map);
         }
+
+        function onMouseMoving(e) {
+            map.attributionControl.setPrefix("x: " + Math.floor((e.latlng.lng - 64) * precision) / precision + ", z: " + Math.floor((-e.latlng.lat - 64) * precision) / precision);
+        }
         map.on('click', onMapClick);
+        map.on('mousemove', onMouseMoving);
 
     </script>
 </body>
