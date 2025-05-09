@@ -111,63 +111,13 @@ def bottomRight(topLeft, scale):
 def normalizeAnchor(anchor):
     return tuple( abs(value % 2048) for value in anchor )
 
-# THIS DOESNT WORK WITH ANYTHING SMALLER THAN SCALE 4
+# Returns the starting index for folder/file
 def folderFileNames(level4Coords, scale):
     return tuple( value // scaleDict[scale] for value in level4Coords)
-
-# I need a sorting funcion for how I want to sort it as well. Whether that's time, newer maps always on top, or size, smaller maps always on top.
 
 # Everything above is base setup for processing
 # -----------------------------------------------
 # Everything below is for image processing based on above data
-# What I want to do is create the lowest zoom and go in.
-# Lowest image, create 
-# This involves splitting everything above zoom 0.
-# So for the largest scale keeping track of 256 left corners.
-# We can split using Image.crop: https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Image.crop
-
-# So with the scale, we can be very inefficient.
-# With each layer, we have to make 2^scale images along each axis
-# scale 0: 1(1x1) 128x128 image, 1: 4(2x2) 128x128 images, 2: 16(4x4) 128x128 images, 3: 64(8x8) 128x128 images, 4:(16x16) 256 128x128 images
-# This is because each tile is set to be 128x128 in Leaflet (Default was 256). Each zoom level splits the tiles into 4 (2^2). Or something like that.
-# The math for this in a for loop:
-# for i in range((2 ** scale) ** 2): # This'll return the total number of images. Maybe split into nested for loop? range(2**scale)
-# X, -Left +Right
-# Y, -Down +Up
-# Folder is Zoom Level
-# scale: 0 = 4
-# scale: 1 = 3
-# scale: 2 = 2
-# scale: 3 = 1
-# scale: 4 = 0
-# The solution is (4 - scale) to get the correct folder name
-# Nested Folder is X, Left Right
-# scale 0: anchor.x/64 = Folder
-# scale 1: anchor.x/192 = Folder
-# scale 2: anchor.x/448 = Folder
-# scale 3: anchor.x/960 = Folder
-# scale 4: anchor.x/1984 = Folder
-# Image Name is Y, Up Down
-# scale 0: anchor.z/64 = File Name
-# scale 1: anchor.z/192 = File Name
-# scale 2: anchor.z/448 = File Name
-# scale 3: anchor.z/960 = File Name
-# scale 4: anchor.z/1984 = File Name
-
-# Is this different for different dimensions?
-
-# Get all the maps in the folder. Sort them by size, highest zoom to lowest. Skip all non player maps.
-# Create images using all the scale 4 maps. Making them to actual coverage size. In the instance a map covers the same, get the time of the map modified. Newest map written on top of the old map. Don't replace it, that way we can preserve old data if new map doesn't cover it all
-# https://docs.python.org/3/library/os.path.html#os.path.getmtime
-# Then proceed through the scale3, adding them onto the scale 4 maps if the bounds are within topleft + 1024.
-# Make a new image the size of scale 4 if one doesn't exist for the area and then put in correct position.
-# Repeat for scale 2, 1, and 0.
-# That'll give us the base images to use to make tiles for everything else.
-# We then will cut up the images as needed for every zoom and then resize them to the correct size of 128x128
-
-
-
-
 
 usage = '''
 Usage:
@@ -187,182 +137,111 @@ for filename in glob.glob(os.path.join(sourcePath, 'map_*.dat')):
     filenames.append(filename)
 print(f"Files found: {len(filenames)}")
 
-# I should probably not get the map directory instead but keep it as filenames. I need the info from them (time).
-# or not... apparently iterating over dictionaries iterates over keys and not values
-# Though doing mapData[key] could add slowdowns
-# That's why you iterate with `for key,value in dict.items()`
 # Iterates over the source directory files and selects what should be player maps only.
-mapData = {}
+overworldMapData = {}
+netherMapData = {}
+endMapData = {}
 for filename in tqdm(filenames, desc=('Picking player maps')):
     temp = parser.parse(filename)
     temp = temp["data"]
-    if temp["unlimitedTracking"] == 0:
-        # colors = temp["colors"]
-        temp["colors"] = [allColors[a] for a in temp["colors"]]
-        temp["epoch"] = os.path.getmtime(filename)
-        temp["anchor"] = [temp["xCenter"] - (64 * 2 ** temp["scale"]) + 64, temp["zCenter"] - (64 * 2 ** temp["scale"]) + 64]
-        mapData[filename] = temp
-print(f"Player maps count: {len(mapData)}")
-
-# It might be bad to assume that dicts are always ordered... Additionally, since I have the epoch stored with the data, it's no longer necessary to keep filename.
-# I should probably change this to a list
+    if "unlimitedTracking" in temp:
+        if temp["unlimitedTracking"] == 0:
+            temp["colors"] = [allColors[a] for a in temp["colors"]]
+            temp["epoch"] = os.path.getmtime(filename)
+            # Set's the anchor. This is the center of the top left most scale 0 map as this lets us start at 0,0
+            temp["anchor"] = [temp["xCenter"] - (64 * 2 ** temp["scale"]) + 64, temp["zCenter"] - (64 * 2 ** temp["scale"]) + 64]
+            if temp["dimension"] == "minecraft:overworld":
+                overworldMapData[filename] = temp
+            elif temp["dimension"] == "minecraft:nether":
+                netherMapData[filename] = temp
+            else:
+                endMapData[filename] = temp
+print(f"Player maps count: {len(overworldMapData) + len(netherMapData) + len(endMapData)}")
 
 # sort mapData by time modified
-mapData = dict(sorted(mapData.items(), key=lambda item: item[1]["epoch"]))
+overworldMapData = dict(sorted(overworldMapData.items(), key=lambda item: item[1]["epoch"]))
+netherMapData = dict(sorted(netherMapData.items(), key=lambda item: item[1]["epoch"]))
+endMapData = dict(sorted(endMapData.items(), key=lambda item: item[1]["epoch"]))
 # and then sort mapData by the scale
 # this works cause Python sort is stable
-mapData = dict(sorted(mapData.items(), key=lambda item: item[1]["scale"], reverse=True))
+overworldMapData = dict(sorted(overworldMapData.items(), key=lambda item: item[1]["scale"], reverse=True))
+netherMapData = dict(sorted(netherMapData.items(), key=lambda item: item[1]["scale"], reverse=True))
+endMapData = dict(sorted(endMapData.items(), key=lambda item: item[1]["scale"], reverse=True))
 
-
-
-# for map in mapData:
-#     print("Filename: " + str(map) + "Scale: " + str(mapData[map]["scale"]) + " Epoch: " + str(mapData[map]["epoch"]))
 
 
 # We then go through the mapData dict and store in a diferent dict using topleft coord based on scale 4 as the key. This'll append to the list or create a list if there is none
 # This one actually needs to be a dict cause we need to group the maps. Cool.
 scale4maps = defaultdict(list)
-for key, map in mapData.items():
-    scale4maps[roundDown(map["anchor"], 4)].append(map)
+
+def createScale4Maps(mapData):
+    for key, map in mapData.items():
+        scale4maps[roundDown(map["anchor"], 4)].append(map)
 
 
 # We then go through the dictionary and create an image based on each entry
 # The images should be in their own dictionary. The key is the coords. The value is the image. No actually, it's fine if it's just a list. In fact we should just save them as they're made.
+def createImages(scale4maps, mapData, dimension):
+    for level4Coords, lists in tqdm(scale4maps.items(), desc="Creating map images and subimages"):
+        # This iterates over every map in the scale 4 map area
+        bigImage = Image.new( 'RGBA', (2048, 2048), (0, 0, 0, 0) )
+        for map in lists:
+            image = Image.new( 'RGBA', (128,128) )
 
-for level4Coords, lists in tqdm(scale4maps.items(), desc="Creating map images"):
-    print(str(level4Coords))
-    # This iterates over every map in the scale 4 map area
-    bigImage = Image.new( 'RGBA', (2048, 2048), (0, 0, 0, 0) )
-    for map in lists:
-        image = Image.new( 'RGBA', (128,128) )
+            # Fills out the image pixel by pixel
+            image.putdata(map["colors"])
 
-        # Fills out the image pixel by pixel
-        image.putdata(map["colors"])
+            # Resize to proper size. So zoom 4 will be the 2048x2048 scale
+            image = image.resize((128 * 2 ** mapData[key]["scale"],) * 2, Image.NEAREST)
+            bigImage.paste(image, normalizeAnchor(map["anchor"]))
+        
+        # Slices the image to make each zoom level
+        for i in range(1, 5):
+            for x in range(2 ** i):
+                for y in range(2 ** i):
+                    # x * (2048 / 2 ** i) This is the math for the left bound
+                    # y * (2048 / 2 ** i) This is the math for the upper bound
+                    # (x+1) * (2048 / 2 ** i) This is the math for the right bound
+                    # (y+1) * (2048 / 2 ** i) This is the math for the lower bound
+                    bounds = ((x * 2048 // 2 ** i), (y * 2048 // 2 ** i), ((x+1) * 2048 // 2 ** i), ((y+1) * 2048 // 2 ** i))
 
-        # Resize to proper size. So zoom 4 will be the 2048x2048 scale
-        image = image.resize((128 * 2 ** mapData[key]["scale"],) * 2, Image.NEAREST)
-        bigImage.paste(image, normalizeAnchor(map["anchor"]))
-        # print("Anchor: " + str(map["anchor"]) + " Normalized: " + str(normalizeAnchor(map["anchor"])))
-    # Info REMOVE -=-=-=-=-=-=-
-    print("Zoom: 0")
-    
-    folder, file = folderFileNames(level4Coords, 4)
-    print("folder: " + str(folder) + " file: " + str(file))
-    # Info REMOVE -=-=-==-=-=-=-=-=-
-    # Add slicing here
-    for i in range(1, 5):
-        print("Zoom: " + str(i))
-        for x in range(2 ** i):
-            for y in range(2 ** i):
-                # print("x: " + str(x) + ", y: " + str(y))
-                # x * (2048 / 2 ** i) This is the math for the left bound
-                # y * (2048 / 2 ** i) This is the math for the upper bound
-                # (x+1) * (2048 / 2 ** i) This is the math for the right bound
-                # (y+1) * (2048 / 2 ** i) This is the math for the lower bound
-                bounds = ((x * 2048 // 2 ** i), (y * 2048 // 2 ** i), ((x+1) * 2048 // 2 ** i), ((y+1) * 2048 // 2 ** i))
+                    # Crop the specific region for the scale
+                    image = bigImage.crop(bounds)
 
-                # Crop the specific region for the scale
-                image = bigImage.crop(bounds)
+                    # If the selected area is empty, skip making the image
+                    if image.getbbox() is None:
+                        image.close()
+                        continue
 
-                # If the selected area is empty, skip making the image
-                if image.getbbox() is None:
+                    # Resize to the correct size for Leaflet
+                    image = image.resize((128,) * 2, Image.NEAREST)
+                    # Get the right image name:
+                    folder, file = folderFileNames(level4Coords, scaleToZoom[i])
+                    dir = os.path.join(sys.argv[2], f"{i}", f"{folder + x}")
+                    if not os.path.isdir(dir):
+                        os.makedirs(dir)
+                    dir = os.path.join(dir, f"{file + y}.png")
+                    image.save(dir)
                     image.close()
-                    continue
-
-                # Resize to the correct size for Leaflet
-                image = image.resize((128,) * 2, Image.NEAREST)
-                # Get the right image name:
-                folder, file = folderFileNames(level4Coords, scaleToZoom[i])
-                print("folder: " + str(folder + math.copysign(x, folder)) + " file: " + str(file + math.copysign(y, file)))
-                dir = os.path.join(sys.argv[2], f"{i}", f"{folder + x}")
-                if not os.path.isdir(dir):
-                    os.makedirs(dir)
-                dir = os.path.join(dir, f"{file + y}.png")
-                image.save(dir)
-                image.close()
-        print("----------------")
-    
-    # Saves the lowest level zoom
-    folder, file = folderFileNames(level4Coords, 4)
-    zoomFolder = scaleToZoom[4]
-    dir = os.path.join(sys.argv[2], f"{zoomFolder}", f"{folder}")
-    if not os.path.isdir(dir):
-        os.makedirs(dir)
-    bigImage = bigImage.resize((128,) * 2, Image.NEAREST)
-    dir = os.path.join(dir, f"{file}.png")
-    bigImage.save(dir)
-    
-    bigImage.close()
-    print("-----")
-
-
-# count = 0
-# # For now, just makes images from the player maps
-# for key in mapData:
-#     image = Image.new( 'RGBA', (128, 128)) 
-
-#     # Fills out the image pixel by pixel
-#     image.putdata(mapData[key]["colors"])
-
-#     # So zoom 4 will be the 2048x2048 scale
-#     image = image.resize((128 * 2 ** mapData[key]["scale"],) * 2, Image.NEAREST)
-
-#     # Saves the image in the same location as the file as a png
-#     image.save(sys.argv[2] + f"/{count}.png")
-#     count = count + 1
+        
+        # Saves the lowest level zoom
+        folder, file = folderFileNames(level4Coords, 4)
+        zoomFolder = scaleToZoom[4]
+        dir = os.path.join(sys.argv[2], f"{zoomFolder}", f"{folder}")
+        if not os.path.isdir(dir):
+            os.makedirs(dir)
+        bigImage = bigImage.resize((128,) * 2, Image.NEAREST)
+        dir = os.path.join(dir, f"{file}.png")
+        bigImage.save(dir)
+        bigImage.close()
 
 
 
+createScale4Maps(overworldMapData)
+createImages(scale4maps, overworldMapData, "overworld")
 
+createScale4Maps(netherMapData)
+createImages(scale4maps, netherMapData, "nether")
 
-
-
-
-
-
-
-# Code to make a single image (reference)
-# ---------------------------------------------
-# # Get these, put them in a list or dict or something
-# # Getting values from the parser
-# mapData = parser.parse(sys.argv[1])
-# scale = mapData["data"]["scale"]
-# banners = mapData["data"]["banners"]
-# frames = mapData["data"]["frames"]
-# zCenter = mapData["data"]["zCenter"]
-# xCenter = mapData["data"]["xCenter"]
-# print(xCenter, zCenter)
-
-# # I don't remember what this makes, I just made it. I believe the goal of this is to shift the origin to start from the top left corner for all future calculations
-# # Calculates the topleft coord from the center. This is done because each map expands down and right. Therefore, no matter the zoom, maps in the same section have the same top left corner.
-# # anchor = [xCenter - (64 * 2 ** scale) + 64, zCenter - (64 * 2 ** scale)]
-# anchor = [xCenter - (64 * 2 ** scale) + 64, zCenter - (64 * 2 ** scale) + 64]
-# print(anchor)
-
-# # The z center moves according to the scale. Cause each time, it doubles the length and height.
-# # scale 0: 0, 0
-# # 1: 64, 64
-# # 2: 192, 192
-# # 3: 448, 448
-# # 4: 960, 960
-# # This means that from 0->1 + 64, 1->2, + 128, 2->3 + 256, 3->4 + 512
-# # That is how we get the math 64 * 2 ** scale
-
-
-# # All Minecraft Maps are 128x128 no matter the scale. Rather with scale, each pixel represents aan average of a bigger area of blocks. Max zoom, 1 pixel = 16x16 blocks
-# # Create a new Image object
-# image = Image.new( 'RGBA', (128, 128)) 
-
-# # Converts from Minecraft map color index to actual RGB
-# colors = mapData["data"]["colors"]
-# mapImage = [allColors[a] for a in tqdm(colors, desc='Writing Image')]
-
-# # Fills out the image pixel by pixel
-# image.putdata(mapImage)
-
-# # So zoom 4 will be the 2048x2048 scale
-# image = image.resize((128 * 2 ** scale,) * 2, Image.NEAREST)
-
-# # Saves the image in the same location as the file as a png
-# length = len(sys.argv[1])
-# image.save(sys.argv[1][0:length-4] + ".png")
+createScale4Maps(endMapData)
+createImages(scale4maps, endMapData, "end")

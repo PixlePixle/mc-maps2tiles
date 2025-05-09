@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Server Map</title>
     <!-- CSS -->
     <link rel="stylesheet" href="style.css">
 
@@ -34,7 +34,7 @@
         // map.attributionControl.setPrefix('<a href="https://leafletjs.com/">Leaflet</a>');
         // https://groups.google.com/g/leaflet-js/c/fA6M7fbchOs/m/JTNVhqdc7JcJ
         map.attributionControl.setPrefix('');
-        L.tileLayer('map/{z}/{x}/{y}.png', {
+        var Overworld = L.tileLayer('map/overworld/{z}/{x}/{y}.png', {
             noWrap: true,
             tileSize: (128), // Previously multiplied by 16
             // Substract everything by 4 to get propery scaling (2^4 = 16 which was the previous scaling applied on tileSize)
@@ -43,9 +43,31 @@
             minNativeZoom:0-4,
             maxZoom: 8-4,
             zoomOffset: 4,
-            attribution: 'pixle\'s Vanilla Server',
+            attribution: 'Overworld | pixle\'s Vanilla Server',
             keepBuffer: 4
-        }).addTo(map);
+        });
+        var Nether = L.tileLayer('map/nether/{z}/{x}/{y}.png', {
+            noWrap: true,
+            tileSize: (128),
+            minZoom: 0-4,
+            maxNativeZoom: 4-4,
+            minNativeZoom:0-4,
+            maxZoom: 8-4,
+            zoomOffset: 4,
+            attribution: 'Nether | pixle\'s Vanilla Server',
+            keepBuffer: 4
+        });
+        var End = L.tileLayer('map/end/{z}/{x}/{y}.png', {
+            noWrap: true,
+            tileSize: (128),
+            minZoom: 0-4,
+            maxNativeZoom: 4-4,
+            minNativeZoom:0-4,
+            maxZoom: 8-4,
+            zoomOffset: 4,
+            attribution: 'End | pixle\'s Vanilla Server',
+            keepBuffer: 4
+        });
     
 
         // map.fitBounds([[-1000, -1000], [1000, 1000]]);
