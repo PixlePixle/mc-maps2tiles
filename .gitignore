@@ -1,2 +1,5 @@
 __pycache__/
 command.txt
+whitelist.json
+*.dat
+/site/map/

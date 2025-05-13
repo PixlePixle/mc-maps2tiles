@@ -200,7 +200,7 @@ def createImages(scale4maps, dimension):
 
             # Resize to proper size. So zoom 4 will be the 2048x2048 scale
             image = image.resize((128 * 2 ** map["scale"],) * 2, Image.NEAREST)
-            bigImage.paste(image, normalizeAnchor(map["anchor"]))
+            bigImage.paste(image, normalizeAnchor(map["anchor"]), mask=image)
         
         # Slices the image to make each zoom level
         for i in range(1, 5):

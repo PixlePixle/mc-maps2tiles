@@ -1,9 +1,10 @@
 Installed Pillow
 Installed tqdm
+Installed watchdog
 At least Python 3.7
 At least Minecraft World created in 1.20
 
 Considerations:
  - Refactor the code to be cleaner
     - Make methods?
- - Set up support for other dimensions. This means creating new layers in leaflet and changing python code.
+ - A player tracker
