@@ -4,6 +4,7 @@ A lightweight web app to visualize player-created Minecraft map items (`map_#.da
 
 > [!IMPORTANT]
 > This'll work for at least Python 3.7 and up. Any lower versions are not guaranteed to work.
+>
 > This has only been tested on Minecraft versions above 1.20
 
 ## 🎯 Features
@@ -60,6 +61,7 @@ This will call mapCreator.py every time there is an update in the source directo
 
 > [!IMPORTANT]
 > You'll have to tell Leaflet to use tile sizes of 128x128 as the default is 256x256.
+>
 > Additionally, this generates only the minimum tiles needed so native zooms must be set as well.
 
 ## 🖼️ Screenshot
