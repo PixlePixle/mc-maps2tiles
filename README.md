@@ -9,7 +9,7 @@ A lightweight web app to visualize player-created Minecraft map items (`map_#.da
 
 ## 🎯 Features
 
-- 📄 Supports only player-created `map_#.dat` files
+- 📄 Generates only player-created `map_#.dat` files, ignoring treasure maps
 - 🧭 Renders handheld Minecraft maps as Leaflet tiles
 - 🕒 Maps are sorted largest to smallest, oldest to youngest
 - ⚡ Static and fast — runs locally with Python and JavaScript
@@ -67,7 +67,7 @@ This will call mapCreator.py every time there is an update in the source directo
 ## 🖼️ Screenshot
 
 TODO: Include screenshot
-<!-- ![screenshot](screenshot.png) -->
+![screenshot](example.png)
 
 ## 🧰 Built With
 
