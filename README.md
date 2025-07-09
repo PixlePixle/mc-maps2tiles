@@ -66,7 +66,8 @@ This will call mapCreator.py every time there is an update in the source directo
 
 ## 🖼️ Screenshot
 
-![screenshot](example.png)
+![screenshot1](example.png)
+![screenshot2](example2.png)
 
 ## 🧰 Built With
 
