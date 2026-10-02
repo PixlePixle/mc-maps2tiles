@@ -1,4 +1,4 @@
-# 🗺️ Minecraft Player Map Viewer
+# Minecraft Player Map Viewer
 
 A lightweight web app to visualize player-created Minecraft map items (`map_#.dat` files). This tool parses the binary data of in-game map items and converts them into images for use with Leaflet.
 
@@ -7,15 +7,15 @@ A lightweight web app to visualize player-created Minecraft map items (`map_#.da
 >
 > This has only been tested on Minecraft versions above 1.20
 
-## 🎯 Features
+## Features
 
-- 📄 Generates only player-created `map_#.dat` files, ignoring treasure maps
-- 🧭 Renders handheld Minecraft maps as Leaflet tiles
-- 🕒 Maps are sorted largest to smallest, oldest to youngest
-- ⚡ Static and fast — runs locally with Python and JavaScript
-- 🧱 Simple to use
+- Generates only player-created `map_#.dat` files, ignoring treasure maps
+- Renders handheld Minecraft maps as Leaflet tiles
+- Maps are sorted largest to smallest, oldest to youngest
+- Static and fast — runs locally with Python and JavaScript
+- Simple to use
 
-## 📂 File Format
+## File Format
 
 This tool works exclusively with the `map_#.dat` files found in your Minecraft world save directory:
 
@@ -27,7 +27,7 @@ These files are created when a player crafts and uses an in-game map item.
 
 One thing to note is that files are only updated when the world saves.
 
-## 🚀 Getting Started
+## Getting Started
 
 ### 1. Clone the repository
 
@@ -64,17 +64,17 @@ This will call mapCreator.py every time there is an update in the source directo
 >
 > Additionally, this generates only the minimum tiles needed so native zooms must be set as well.
 
-## 🖼️ Screenshot
+## Screenshot
 
 ![screenshot1](example.png)
 ![screenshot2](example2.png)
 
-## 🧰 Built With
+## Built With
 
 * Python (for parsing NBT and rendering image tiles)
 * [Leaflet.js](https://leafletjs.com/) (for web map display)
 
-## 📄 License
+## License
 
 MIT License — see [LICENSE](LICENSE) for details.
 
