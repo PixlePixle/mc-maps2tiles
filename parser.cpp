@@ -3,51 +3,72 @@
 #include <fstream>
 #include <cstring>
 
-namespace Parser {
+// Delete this
+#include <iostream>
 
-    Compound parse(std::string filePath)
+namespace Parser {
+    uint8_t readByte(gzFile fileStream)
     {
-        std::ifstream fileStream(filePath , std::ios_base::binary);
-        Compound ret = parseCompound(fileStream);
+        uint8_t ret;
+        if ( gzread(fileStream, &ret, 1) != 1 )
+            throw std::runtime_error("Unexpected EOF");
+        
         return ret;
     }
 
-    Byte parseByte(std::ifstream& fileStream)
+    Compound parse(std::string filePath)
     {
-        uint8_t ret = fileStream.get();
+        gzFile fileStream = gzopen(filePath.c_str(), "rb");
+        if ( !fileStream )
+            throw std::runtime_error("Failed to open NBT file");
+
+        // Consume a byte here because it represents the compound root
+        readByte(fileStream);
+        // Burn two more for some reason.
+        readByte(fileStream);
+        readByte(fileStream);
+        Compound ret = parseCompound(fileStream);
+
+        gzclose(fileStream);
+        return ret;
+    }
+
+    Byte parseByte(gzFile fileStream)
+    {
+        uint8_t ret = readByte(fileStream);
         return static_cast<Byte>(ret);
     }
 
-    Short parseShort(std::ifstream& fileStream)
+    Short parseShort(gzFile fileStream)
     {
-        uint16_t ret = fileStream.get();
-        ret = ret << 8 | fileStream.get();
+        uint16_t ret = readByte(fileStream);
+        ret = (ret << 8) | readByte(fileStream);
         return static_cast<Short>(ret);
     }
 
-    Int parseInt(std::ifstream& fileStream)
+    Int parseInt(gzFile fileStream)
     {
-        uint32_t ret = fileStream.get();
-        ret = ret << 8 | fileStream.get();
-        ret = ret << 8 | fileStream.get();
-        ret = ret << 8 | fileStream.get();
+        uint32_t ret = readByte(fileStream);
+        ret = (ret << 8) | readByte(fileStream);
+        ret = (ret << 8) | readByte(fileStream);
+        ret = (ret << 8) | readByte(fileStream);
         return static_cast<Int>(ret);
     }
 
-    Long parseLong(std::ifstream& fileStream)
+    Long parseLong(gzFile fileStream)
     {
-        uint64_t ret = fileStream.get();
-        ret = ret << 8 | fileStream.get();
-        ret = ret << 8 | fileStream.get();
-        ret = ret << 8 | fileStream.get();
-        ret = ret << 8 | fileStream.get();
-        ret = ret << 8 | fileStream.get();
-        ret = ret << 8 | fileStream.get();
-        ret = ret << 8 | fileStream.get();
+        uint64_t ret = readByte(fileStream);
+        ret = (ret << 8) | readByte(fileStream);
+        ret = (ret << 8) | readByte(fileStream);
+        ret = (ret << 8) | readByte(fileStream);
+        ret = (ret << 8) | readByte(fileStream);
+        ret = (ret << 8) | readByte(fileStream);
+        ret = (ret << 8) | readByte(fileStream);
+        ret = (ret << 8) | readByte(fileStream);
         return static_cast<Long>(ret);
     }
 
-    Float parseFloat(std::ifstream& fileStream)
+    Float parseFloat(gzFile fileStream)
     {
         uint32_t bits = parseInt(fileStream);
         Float ret;
@@ -55,7 +76,7 @@ namespace Parser {
         return ret;
     }
 
-    Double parseDouble(std::ifstream& fileStream)
+    Double parseDouble(gzFile fileStream)
     {
         uint64_t bits = parseLong(fileStream);
         double ret;
@@ -63,18 +84,23 @@ namespace Parser {
         return ret;
     }
 
-    String parseString(std::ifstream& fileStream)
+    String parseString(gzFile fileStream)
     {
         uint16_t length = static_cast<uint16_t>(parseShort(fileStream));
         String ret(length, '\0');
-        fileStream.read(ret.data(), length);
+        int bytesRead ;
+        if ( bytesRead = gzread(fileStream, ret.data(), length) != length )
+            throw std::runtime_error("Unexpected EOF");
+        
+        std::cout << "length: " << length << '\n';
+        std::cout << "bytesRead: " << bytesRead << '\n';
         return ret;
     }
 
-    List parseList(std::ifstream& fileStream)
+    List parseList(gzFile fileStream)
     {
         List ret;
-        uint8_t tag = static_cast<uint8_t>(fileStream.get());
+        uint8_t tag = static_cast<uint8_t>(readByte(fileStream));
         if ( tag < 0 || ID::ID_LAST <= tag )
         {
             exit(EXIT_FAILURE);
@@ -125,13 +151,13 @@ namespace Parser {
         return ret;
     }
 
-    Compound parseCompound(std::ifstream& fileStream)
+    Compound parseCompound(gzFile fileStream)
     {
         Compound ret;
         while ( true )
         {
             // Reads the tag id
-            uint8_t tag = static_cast<uint8_t>(fileStream.get());
+            uint8_t tag = static_cast<uint8_t>(readByte(fileStream));
             if ( tag < 0 || ID::ID_LAST <= tag )
             {
                 exit(EXIT_FAILURE);
@@ -181,7 +207,7 @@ namespace Parser {
         return ret;
     }
 
-    ByteArray parseByteArray(std::ifstream& fileStream) 
+    ByteArray parseByteArray(gzFile fileStream) 
     {
         ByteArray ret;
         Int length = parseInt(fileStream);
@@ -193,7 +219,7 @@ namespace Parser {
         return ret;
     }
 
-    IntArray parseIntArray(std::ifstream& fileStream) 
+    IntArray parseIntArray(gzFile fileStream) 
     {
         IntArray ret;
         Int length = parseInt(fileStream);
@@ -204,7 +230,7 @@ namespace Parser {
         return ret;
     }
 
-    LongArray parseLongArray(std::ifstream& fileStream) 
+    LongArray parseLongArray(gzFile fileStream) 
     {
         LongArray ret;
         Int length = parseInt(fileStream);

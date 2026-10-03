@@ -4,6 +4,7 @@
 #include <variant>
 #include <string>  
 #include <cstdint>
+#include <zlib.h>
 
 namespace Parser
 {
@@ -15,10 +16,10 @@ namespace Parser
         LONG,
         FLOAT,
         DOUBLE,
+        BYTE_ARRAY,
         STRING,
         LIST,
         COMPOUND,
-        BYTE_ARRAY,
         INT_ARRAY,
         LONG_ARRAY,
         ID_LAST
@@ -83,7 +84,7 @@ namespace Parser
      * 
      * @return Byte Object (uint8_t)
      */
-    Byte parseByte(std::ifstream& fileStream);
+    Byte parseByte(gzFile fileStream);
     
     /**
      * @brief Reads a Short from the file
@@ -92,7 +93,7 @@ namespace Parser
      * 
      * @return Short Object (uint16_t)
      */
-    Short parseShort(std::ifstream& fileStream);
+    Short parseShort(gzFile fileStream);
 
     /**
      * @brief Reads a Int from the file
@@ -101,7 +102,7 @@ namespace Parser
      * 
      * @return Int Object (uint32_t)
      */
-    Int parseInt(std::ifstream& fileStream);
+    Int parseInt(gzFile fileStream);
 
     /**
      * @brief Reads a Long from the file
@@ -110,7 +111,7 @@ namespace Parser
      * 
      * @return Long Object (uint64_t)
      */
-    Long parseLong(std::ifstream& fileStream);
+    Long parseLong(gzFile fileStream);
 
     /**
      * @brief Reads a Float from the file
@@ -119,7 +120,7 @@ namespace Parser
      * 
      * @return Float Object (float)
      */
-    Float parseFloat(std::ifstream& fileStream);
+    Float parseFloat(gzFile fileStream);
 
     /**
      * @brief Reads a Double from the file
@@ -128,7 +129,7 @@ namespace Parser
      * 
      * @return Double Object (double)
      */
-    Double parseDouble(std::ifstream& fileStream);
+    Double parseDouble(gzFile fileStream);
 
     /**
      * @brief Reads a String from the file
@@ -137,7 +138,7 @@ namespace Parser
      * 
      * @return String Object (std::string)
      */
-    String parseString(std::ifstream& fileStream);
+    String parseString(gzFile fileStream);
     
     /**
      * @brief Reads a List from the file
@@ -146,7 +147,7 @@ namespace Parser
      * 
      * @return List Object (std::vector<NBT>)
      */
-    List parseList(std::ifstream& fileStream);
+    List parseList(gzFile fileStream);
 
     /**
      * @brief Reads a Compound from the file
@@ -155,7 +156,7 @@ namespace Parser
      * 
      * @return Compound Object (std::unordered_map<NBT>)
      */
-    Compound parseCompound(std::ifstream& fileStream);
+    Compound parseCompound(gzFile fileStream);
 
     /**
      * @brief Reads a Byte Array from the file
@@ -164,7 +165,7 @@ namespace Parser
      * 
      * @return ByteArray Object (std::vector<Byte>)
      */
-    ByteArray parseByteArray(std::ifstream& fileStream);
+    ByteArray parseByteArray(gzFile fileStream);
 
     /**
      * @brief Reads a Int Array from the file
@@ -173,7 +174,7 @@ namespace Parser
      * 
      * @return IntArray Object (std::vector<Int>)
      */
-    IntArray parseIntArray(std::ifstream& fileStream);
+    IntArray parseIntArray(gzFile fileStream);
 
     /**
      * @brief Reads a Long Array from the file
@@ -182,6 +183,6 @@ namespace Parser
      * 
      * @return LongArray Object (std::vector<Long>)
      */
-    LongArray parseLongArray(std::ifstream& fileStream);
+    LongArray parseLongArray(gzFile fileStream);
 
 }
