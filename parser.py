@@ -90,6 +90,9 @@ def List():
             case "String":
                 returnObject = String()
                 list.append(returnObject)
+            case "List":
+                returnObject = List()
+                list.append(returnObject)
             case "Byte_Array":
                 returnObject = Byte_Array()
                 list.append(returnObject)
