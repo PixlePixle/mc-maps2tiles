@@ -91,9 +91,6 @@ namespace Parser {
         int bytesRead ;
         if ( bytesRead = gzread(fileStream, ret.data(), length) != length )
             throw std::runtime_error("Unexpected EOF");
-        
-        std::cout << "length: " << length << '\n';
-        std::cout << "bytesRead: " << bytesRead << '\n';
         return ret;
     }
 
