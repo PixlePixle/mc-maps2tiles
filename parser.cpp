@@ -1,10 +1,7 @@
 #include "parser.h"
 
-#include <fstream>
+#include <stdexcept>
 #include <cstring>
-
-// Delete this
-#include <iostream>
 
 namespace Parser {
     uint8_t readByte(gzFile fileStream)
