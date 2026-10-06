@@ -6,6 +6,7 @@ from PIL import Image
 from tqdm import tqdm
 from collections import defaultdict
 import sys
+import re
 
 # The base map colors used by Minecraft. Each one is multiplied to get all the possible map colors
 baseColors = [(0, 0, 0, 0),
@@ -133,8 +134,9 @@ outputPath = sys.argv[2]
 
 # Gets all files in the source directory
 filenames = []
-for filename in glob.glob(os.path.join(sourcePath, 'map_*.dat')):
-    filenames.append(filename)
+for filename in glob.glob(os.path.join(sourcePath, '*.dat')):
+    if re.fullmatch(r'\d+\.dat', os.path.basename(filename)):
+        filenames.append(filename)
 print(f"Files found: {len(filenames)}")
 
 # Iterates over the source directory files and selects what should be player maps only.
