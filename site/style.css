@@ -53,6 +53,10 @@
     width: 100vw;
 }
 
-img.leaflet-tile {
-    image-rendering: pixelated;
+img {
+  image-rendering: pixelated;
 }
+
+/* img.leaflet-tile {
+    image-rendering: pixelated;
+} */
