@@ -79,7 +79,8 @@
         // map.fitBounds([[-1000, -1000], [1000, 1000]]);
         var precision = 10 // I forgot what this does
         function mcXYTomapXY(coord) {
-            return [(Math.floor((coord[0] - 64) * precision) / precision), (Math.floor((coord[1] + 64) * precision) / precision)];
+            // First is z, second is x. coord[1] is z coord[0] is x. Confusing lol I keep expecting x, z not z, x
+            return [(Math.floor((-coord[1] - 64) * precision) / precision), (Math.floor((coord[0] + 64) * precision) / precision)];
         }
 
         // Sets the view to have the world's 0,0 in teh center
@@ -103,7 +104,7 @@
         const greenIcon = new Banner({color: 'green'}),
             redIcon = new Banner({color: "red"});
         new L.marker(mcXYTomapXY([0,0]), {icon: redIcon}).addTo(map).bindPopup("I am a red leaf.");
-        new L.marker(mcXYTomapXY([120,120]), {icon: greenIcon}).addTo(map).bindPopup("I am an orange leaf.");
+        new L.marker(mcXYTomapXY([0,64]), {icon: greenIcon}).addTo(map).bindPopup("I am an orange leaf.");
         // // const marker = new L.marker([(Math.floor((0 - 64) * precision) / precision), (Math.floor((-0 + 64) * precision) / precision)], {icon: greenIcon}).addTo(map);
         // const marker = new L.marker([(Math.floor((0 - 64) * precision) / precision), (Math.floor((-0 + 64) * precision) / precision)], {icon: greenIcon}).addTo(map);
 
