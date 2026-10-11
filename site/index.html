@@ -20,7 +20,11 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
     crossorigin=""></script>
-    
+
+    <!-- Pixel Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
     
 </head>
 <body>
@@ -100,6 +104,7 @@
             }
         });
 
+        const markers = [];      // Store your markers here
         fetch('map/overworld/banners.json')
             .then(response => response.json())
             .then(data => {
@@ -109,16 +114,16 @@
                     if(banner.hasOwnProperty("name"))
                         mark.bindTooltip(banner.name, 
                     {
-                        permanent: true,
+                        permanent: false,
                         direction: 'bottom',
                         offset: [0, 12],
                         className: 'banner-tooltip'
                     });
                     mark.addTo(map);
+                    markers.push(mark)
                 });
             })
             .catch(error => console.error("Error loading Json", error));
-        
 
         var popup = L.popup();
         function onMapClick(e) {
@@ -141,6 +146,20 @@
         map.on('click', onMapClick);
         map.on('mousemove', onMouseMoving);
 
+        // Only show tooltips when zoomed in enough
+        function updateTooltips() {
+        const show = map.getZoom() >= 1;
+
+        markers.forEach(marker => {
+            if (show) {
+            marker.openTooltip();
+            } else {
+            marker.closeTooltip();
+            }
+        });
+        }
+
+        map.on("zoomend", updateTooltips);
     </script>
 </body>
 </html>

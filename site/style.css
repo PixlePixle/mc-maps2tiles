@@ -68,12 +68,14 @@ img {
   box-shadow: none !important;
 
   color: #FFFFFF !important;
-  font-family: "Courier New", monospace;
+  font-family: "Space Mono", monospace;
+  font-weight: 400;
+  font-style: normal;
   font-size: 14px;
-  font-weight: bold;
+  /* line-height: 1.4; */
 
-  padding: 4px 8px !important;
-  text-shadow: 2px 2px 0 #202020;
+  padding: 2px 4px !important;
+  margin: 0 !important;
 }
 
 /* img.leaflet-tile {
