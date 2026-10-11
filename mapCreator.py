@@ -7,6 +7,7 @@ from tqdm import tqdm
 from collections import defaultdict
 import sys
 import re
+import json
 
 # The base map colors used by Minecraft. Each one is multiplied to get all the possible map colors
 baseColors = [(0, 0, 0, 0),
@@ -143,24 +144,36 @@ print(f"Files found: {len(filenames)}")
 overworldMapData = {}
 netherMapData = {}
 endMapData = {}
+# Stores the info about banners
+overworldBannerData = list()
+netherBannerData = list()
+endBannerData = list()
+banners = {"overworld": overworldBannerData, "nether": netherBannerData, "end": endBannerData}
+
 for filename in tqdm(filenames, desc=('Picking player maps')):
     temp = parser.parse(filename)
     temp = temp["data"]
     if "scale" not in temp:
         temp["scale"] = 0
-    if "unlimitedTracking" not in temp:
+    if "unlimitedTracking" not in temp: # Old maps
         temp["unlimitedTracking"] = 0
-    if temp["unlimitedTracking"] == 0:
+    if temp["unlimitedTracking"] == 0: # Player created maps
         temp["colors"] = [allColors[a] for a in temp["colors"]]
         temp["epoch"] = os.path.getmtime(filename)
         # Set's the anchor. This is the center of the top left most scale 0 map as this lets us start at 0,0
         temp["anchor"] = [temp["xCenter"] - (64 * 2 ** temp["scale"]) + 64, temp["zCenter"] - (64 * 2 ** temp["scale"]) + 64]
         if temp["dimension"] == "minecraft:overworld" or temp["dimension"] == 0:
             overworldMapData[filename] = temp
+            if "banners" in temp and temp["banners"]:
+                overworldBannerData.extend(temp["banners"])
         elif temp["dimension"] == "minecraft:the_nether" or temp["dimension"] == -1:
             netherMapData[filename] = temp
+            if "banners" in temp and temp["banners"]:
+                netherBannerData.extend(temp["banners"])
         else: # "the_end"
             endMapData[filename] = temp
+            if "banners" in temp and temp["banners"]:
+                endBannerData.extend(temp["banners"])
 print(f"Player maps count: {len(overworldMapData) + len(netherMapData) + len(endMapData)}")
 
 # sort mapData by time modified
@@ -244,15 +257,22 @@ def createImages(scale4maps, dimension):
         bigImage.save(dir)
         bigImage.close()
 
+def createBannerJsons(dimension):
+    if os.path.exists(os.path.join(sys.argv[2], dimension)):
+        with open(os.path.join(sys.argv[2], dimension, 'banners.json'), "w") as file:
+            json.dump(banners[dimension], file, indent=4)
 
 print("Overworld")
 result = createScale4Maps(overworldMapData)
 createImages(result, "overworld")
+createBannerJsons("overworld")
 
 print("Nether")
 result = createScale4Maps(netherMapData)
 createImages(result, "nether")
+createBannerJsons("nether")
 
 print("End")
 result = createScale4Maps(endMapData)
 createImages(result, "end")
+createBannerJsons("end")

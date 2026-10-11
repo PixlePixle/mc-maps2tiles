@@ -25,8 +25,8 @@ for filename in glob.glob(os.path.join(sourcePath, '*-*-*-*-*.dat')):
 print(f"Files found: {len(filenames)}")
 
 UUIDDict = dict()
-if os.path.exists(os.path.join(outputPath, 'uuidDict.txt')):
-    with open(os.path.join(outputPath, 'uuidDict.txt')) as file:
+if os.path.exists(os.path.join(outputPath, 'uuidDict.json')):
+    with open(os.path.join(outputPath, 'uuidDict.json')) as file:
         UUIDDict = json.load(file)
 for filename in filenames:
     temp = parser.parse(filename)
@@ -44,7 +44,7 @@ for filename in filenames:
     print(f"Y: {temp['Pos'][1]}")
     print(f"Z: {temp['Pos'][2]}")
     
-with open(os.path.join(outputPath, 'uuidDict.txt'), "w") as file:
+with open(os.path.join(outputPath, 'uuidDict.json'), "w") as file:
     json.dump(UUIDDict, file, sort_keys=True, indent=4)
     
     # print(f"{data}")

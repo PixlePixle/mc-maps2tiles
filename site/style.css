@@ -57,6 +57,25 @@ img {
   image-rendering: pixelated;
 }
 
+.banner-tooltip::before{
+  display: none;
+}
+
+.banner-tooltip {
+  background: rgba(0, 0, 0, 0.65) !important;
+  border: none !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+
+  color: #FFFFFF !important;
+  font-family: "Courier New", monospace;
+  font-size: 14px;
+  font-weight: bold;
+
+  padding: 4px 8px !important;
+  text-shadow: 2px 2px 0 #202020;
+}
+
 /* img.leaflet-tile {
     image-rendering: pixelated;
 } */
