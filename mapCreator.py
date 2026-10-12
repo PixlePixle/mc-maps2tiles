@@ -129,8 +129,9 @@ Usage:
 if len( sys.argv ) < 3:
     print(usage)
     exit()
-
-sourcePath = sys.argv[1]
+    
+sourcePath = os.path.join(sys.argv[1], 'data', 'minecraft', 'maps')
+# sourcePath = sys.argv[1]
 outputPath = sys.argv[2]
 
 # Gets all files in the source directory

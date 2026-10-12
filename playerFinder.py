@@ -5,20 +5,6 @@ import glob
 import sys
 import urllib.request
 import json
-from pprint import pprint
-import json
-
-# def uuidToName(sourcePath, outputPath):
-#     filenames = []
-#     for filename in glob.glob(os.path.join(sourcePath, '*-*-*-*-*.dat')):
-#         filenames.append(filename)
-
-#     UUIDDict = dict()
-#     if os.path.exists(os.path.join(outputPath, 'uuidDict.json')):
-#         with open(os.path.join(outputPath, 'uuidDict.json')) as file:
-#             UUIDDict = json.load(file)
-
-
 
 def processPlayers(sourcePath, outputPath):
     filenames = []
@@ -111,7 +97,7 @@ def fileWatcher(sourcePath, outputPath):
     event_handler = MyHandler()
     observer = Observer()
     observer.schedule(event_handler, sourcePath, recursive=False)
-
+    global fileChange
     observer.start()
     print(f"Watching for changes in {sourcePath}")
 
@@ -139,8 +125,9 @@ if __name__ == "__main__":
     if len( sys.argv ) < 3:
         print(usage)
         exit()
-
-    sourcePath = sys.argv[1]
+        
+    sourcePath = os.path.join(sys.argv[1], 'players', 'data')
+    # sourcePath = sys.argv[1]
     outputPath = sys.argv[2]
     processPlayers(sourcePath, outputPath)
     fileWatcher(sourcePath, outputPath)
