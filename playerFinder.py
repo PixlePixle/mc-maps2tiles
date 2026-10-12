@@ -88,21 +88,44 @@ def processPlayers(sourcePath, outputPath):
 
 ###########################################
 
-# from watchdog.observers import Observer
-# from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+import time
 
-# fileChange = False
-# class MyHandler(FileSystemEventHandler):
+fileChange = False
 
-#     def on_any_event(self, event):
-#         if event.is_directory:
-#             return None
+class MyHandler(FileSystemEventHandler):
+
+    def on_any_event(self, event):
+        if event.is_directory:
+            return None
         
-#         print(f'File {event.src_path} has been modified')
-#         global fileChange
-#         global timer
-#         if not fileChange:
-#             fileChange = True
+        print(f'File {event.src_path} has been modified')
+        global fileChange
+        global timer
+        if not fileChange:
+            fileChange = True
+
+
+def fileWatcher(sourcePath, outputPath):
+    event_handler = MyHandler()
+    observer = Observer()
+    observer.schedule(event_handler, sourcePath, recursive=False)
+
+    observer.start()
+    print(f"Watching for changes in {sourcePath}")
+
+    try:
+        while True:
+            time.sleep(1)
+            if fileChange:
+                processPlayers(sourcePath, outputPath)
+                fileChange = False
+    except KeyboardInterrupt:
+        observer.stop()
+    observer.join()
+
+
 
 
 ###########################################
@@ -120,29 +143,11 @@ if __name__ == "__main__":
     sourcePath = sys.argv[1]
     outputPath = sys.argv[2]
     processPlayers(sourcePath, outputPath)
+    fileWatcher(sourcePath, outputPath)
 
     
-    # event_handler = MyHandler()
-    # observer = Observer()
-    # observer.schedule(event_handler, sourcePath, recursive=False)
 
-    # observer.start()
-    # print(f"Watching for changes in {sourcePath}")
-
-    # try:
-    #     while True:
-    #         time.sleep(1)
-    #         if timer > 0:
-    #             timer = timer -1
-    #         if fileChange and timer == 0:
-    #             processPlayers(sourcePath, outputPath)
-    #             fileChange = False
-    # except KeyboardInterrupt:
-    #     observer.stop()
-    # observer.join()
-
-
-
+# THIS IS FOR LATER FOR ACTUALLY SEEING WHO'S ONLINE
 # import time
 # def follow(serverLog):
 #     serverLog.seek(0,2) # Go to the end of the file

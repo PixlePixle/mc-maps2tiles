@@ -79,7 +79,8 @@
         var map = L.map('map', 
             {
                 crs: L.CRS.Simple, 
-                layers: [Overworld]
+                layers: [Overworld],
+                maxBoundsViscosity: 1.0
             });
         map.attributionControl.setPrefix('');
         var layerControl = L.control.layers(baseMaps, null, {collapsed:false}).addTo(map);
@@ -120,6 +121,32 @@
         function currentLayerText() {
             return map.hasLayer(Overworld) ? "overworld" : map.hasLayer(Nether) ? "nether" : "end";
         }
+
+        
+        //////////////////////////
+        //      Share Code      //
+        //////////////////////////
+
+        const param = new URLSearchParams(window.location.search);
+        console.log(param)
+        if( param.has("x") && param.has("z") && param.has("zoom") )
+        {
+            map.setView([param.get("x"),param.get("z")], param.get("zoom"));
+            // console.log(param.get("x"));
+            console.log("Test")
+        }
+        function updateURL() {
+            const url = new URL(window.location);
+            url.searchParams.set('x', map.getCenter().lat + 1);
+            url.searchParams.set('z', map.getCenter().lng);
+            url.searchParams.set('zoom', map.getZoom());
+            window.history.replaceState({}, '', url);
+        }
+
+        map.on('moveend', updateURL);
+
+
+
 
         //////////////////////////
         //     Banner Code      //
@@ -201,7 +228,7 @@
                             offset: [0, 12],
                             className: 'banner-tooltip'
                         });
-                        console.log(name);
+                        // console.log(name);
                         mark.closeTooltip();
                     });
                 })
@@ -211,6 +238,45 @@
 
         // Changes the visible icons when a different dimension is chosen.
         map.on("baselayerchange", displayPlayers)
+
+
+        ////////////////////////////////////////////
+        // let previousData = "";
+
+        // async function pollPlayers() {
+        //     try {
+        //         const response = await fetch(
+        //             "/players.json",
+        //             { cache: "no-store" }
+        //         );
+
+        //         if (!response.ok) {
+        //             throw new Error(`HTTP ${response.status}`);
+        //         }
+
+        //         const players = await response.json();
+        //         const currentData = JSON.stringify(players);
+
+        //         if (currentData !== previousData) {
+        //             previousData = currentData;
+
+        //             console.log("Player data changed:", players);
+
+        //             updatePlayerMarkers(players);
+        //         }
+        //     } catch (error) {
+        //         console.error("Could not update player data:", error);
+        //     }
+        // }
+
+        // function updatePlayerMarkers(players) {
+        //     // Integrate this with your existing map code.
+        //     // Add, move, or remove player markers as needed.
+        // }
+
+        // pollPlayers();
+        // setInterval(pollPlayers, 2000);
+        ////////////////////////////////////////////
 
 
 
@@ -236,6 +302,8 @@
         
         map.on("zoomend", updateTooltips);
 
+
+        
     </script>
 </body>
 </html>

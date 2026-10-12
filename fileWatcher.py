@@ -34,10 +34,7 @@ class MyHandler(FileSystemEventHandler):
             timer = 30
 
 
-
-
-
-if __name__ == "__main__":
+def start():
     event_handler = MyHandler()
     observer = Observer()
     observer.schedule(event_handler, sourcePath, recursive=False)
@@ -57,3 +54,6 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         observer.stop()
     observer.join()
+
+if __name__ == "__main__":
+    start()
